@@ -1,5 +1,4 @@
 import path from 'path';
-import fs from 'fs';
 
 export type InputType = 'archive' | 'skillmd';
 
