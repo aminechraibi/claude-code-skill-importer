@@ -2,6 +2,16 @@
   "name": "skill-import",
   "version": "0.1.0",
   "description": "Import Claude Code skills from .skill, .zip, or SKILL.md files",
+  "author": "amine.chraibi <aminechrabii@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/aminechraibi/claude-code-skill-importer#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aminechraibi/claude-code-skill-importer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aminechraibi/claude-code-skill-importer/issues"
+  },
   "main": "dist/index.js",
   "bin": {
     "skill-import": "dist/index.js"
@@ -13,10 +23,10 @@
     "test:watch": "vitest"
   },
   "keywords": ["claude", "claude-code", "skills"],
-  "license": "MIT",
   "files": [
     "dist/",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "dependencies": {
     "adm-zip": "^0.5.10",
