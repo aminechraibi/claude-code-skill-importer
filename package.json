@@ -1,0 +1,28 @@
+{
+  "name": "skill-import",
+  "version": "0.1.0",
+  "description": "Import Claude Code skills from .skill, .zip, or SKILL.md files",
+  "main": "dist/index.js",
+  "bin": {
+    "skill-import": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": ["claude", "claude-code", "skills"],
+  "license": "MIT",
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.5",
+    "@types/node": "^20.0.0",
+    "@types/prompts": "^2.4.9",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}
