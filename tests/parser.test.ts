@@ -169,3 +169,20 @@ describe('extractSkill - directory', () => {
     fs.rmSync(tmpDir, { recursive: true });
   });
 });
+
+describe('extractSkill - bare SKILL.md', () => {
+  it('extracts content from a bare SKILL.md file', () => {
+    const tmpPath = path.join(os.tmpdir(), 'SKILL.md');
+    fs.writeFileSync(tmpPath, '# Standalone Skill');
+
+    const result = extractSkill(tmpPath);
+
+    expect(result.type).toBe('skillmd');
+    expect(result.defaultName).toBeNull();
+    expect(result.files).toHaveLength(1);
+    expect(result.files[0].relativePath).toBe('SKILL.md');
+    expect(result.files[0].content.toString()).toBe('# Standalone Skill');
+
+    fs.unlinkSync(tmpPath);
+  });
+});
