@@ -25,13 +25,13 @@ describe('detectInputType', () => {
 
   it('throws for unsupported extension', () => {
     expect(() => detectInputType('/some/path/skill.txt')).toThrow(
-      'unsupported format. Use .skill, .zip, or SKILL.md'
+      'unsupported format. Use .skill, .zip, SKILL.md, or a directory'
     );
   });
 
   it('throws for a .md file that is not named SKILL.md', () => {
     expect(() => detectInputType('/some/path/README.md')).toThrow(
-      'unsupported format. Use .skill, .zip, or SKILL.md'
+      'unsupported format. Use .skill, .zip, SKILL.md, or a directory'
     );
   });
 });
@@ -110,5 +110,62 @@ describe('extractSkill - archive', () => {
     expect(result.defaultName).toBe('cool-skill');
 
     fs.unlinkSync(tmp);
+  });
+});
+
+describe('detectInputType - directory', () => {
+  it('returns directory for a path that is a directory', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-dir-'));
+    expect(detectInputType(tmpDir)).toBe('directory');
+    fs.rmSync(tmpDir, { recursive: true });
+  });
+});
+
+describe('extractSkill - directory', () => {
+  it('extracts all files from a directory', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-dir-'));
+    fs.writeFileSync(path.join(tmpDir, 'SKILL.md'), '# Dir Skill');
+    fs.writeFileSync(path.join(tmpDir, 'helper.md'), 'helper');
+
+    const result = extractSkill(tmpDir);
+
+    expect(result.type).toBe('directory');
+    expect(result.defaultName).toBe(path.basename(tmpDir));
+    expect(result.files.find(f => f.relativePath === 'SKILL.md')?.content.toString()).toBe('# Dir Skill');
+    expect(result.files.find(f => f.relativePath === 'helper.md')?.content.toString()).toBe('helper');
+
+    fs.rmSync(tmpDir, { recursive: true });
+  });
+
+  it('extracts nested files preserving relative paths', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-dir-'));
+    fs.writeFileSync(path.join(tmpDir, 'SKILL.md'), '# Skill');
+    fs.mkdirSync(path.join(tmpDir, 'sub'));
+    fs.writeFileSync(path.join(tmpDir, 'sub', 'nested.md'), 'nested');
+
+    const result = extractSkill(tmpDir);
+
+    expect(result.files.find(f => f.relativePath === 'sub/nested.md')).toBeTruthy();
+
+    fs.rmSync(tmpDir, { recursive: true });
+  });
+
+  it('throws when SKILL.md is missing from directory', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-dir-'));
+    fs.writeFileSync(path.join(tmpDir, 'other.md'), 'not a skill');
+
+    expect(() => extractSkill(tmpDir)).toThrow('no SKILL.md found in directory');
+
+    fs.rmSync(tmpDir, { recursive: true });
+  });
+
+  it('uses directory basename as defaultName', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'my-cool-skill-'));
+    fs.writeFileSync(path.join(tmpDir, 'SKILL.md'), '# Skill');
+
+    const result = extractSkill(tmpDir);
+    expect(result.defaultName).toBe(path.basename(tmpDir));
+
+    fs.rmSync(tmpDir, { recursive: true });
   });
 });

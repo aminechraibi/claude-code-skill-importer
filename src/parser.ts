@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import AdmZip from 'adm-zip';
 
-export type InputType = 'archive' | 'skillmd';
+export type InputType = 'archive' | 'skillmd' | 'directory';
 
 export interface SkillFile {
   relativePath: string;
@@ -19,10 +19,26 @@ export function detectInputType(filePath: string): InputType {
   const base = path.basename(filePath);
   const ext = path.extname(filePath).toLowerCase();
 
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) return 'directory';
   if (base === 'SKILL.md') return 'skillmd';
   if (ext === '.skill' || ext === '.zip') return 'archive';
 
-  throw new Error('unsupported format. Use .skill, .zip, or SKILL.md');
+  throw new Error('unsupported format. Use .skill, .zip, SKILL.md, or a directory');
+}
+
+function readDirRecursive(dir: string, baseDir: string): SkillFile[] {
+  const files: SkillFile[] = [];
+  for (const entry of fs.readdirSync(dir)) {
+    const fullPath = path.join(dir, entry);
+    const stat = fs.statSync(fullPath);
+    if (stat.isDirectory()) {
+      files.push(...readDirRecursive(fullPath, baseDir));
+    } else {
+      const relativePath = path.relative(baseDir, fullPath).split(path.sep).join('/');
+      files.push({ relativePath, content: fs.readFileSync(fullPath) });
+    }
+  }
+  return files;
 }
 
 export function extractSkill(filePath: string): ParsedSkill {
@@ -38,6 +54,19 @@ export function extractSkill(filePath: string): ParsedSkill {
       type: 'skillmd',
       defaultName: null,
       files: [{ relativePath: 'SKILL.md', content }],
+    };
+  }
+
+  if (type === 'directory') {
+    const skillMdPath = path.join(filePath, 'SKILL.md');
+    if (!fs.existsSync(skillMdPath)) {
+      throw new Error('no SKILL.md found in directory');
+    }
+    const files = readDirRecursive(filePath, filePath);
+    return {
+      type: 'directory',
+      defaultName: path.basename(filePath),
+      files,
     };
   }
 
